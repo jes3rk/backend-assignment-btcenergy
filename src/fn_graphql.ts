@@ -6,6 +6,7 @@ import { getGraphQLParameters, processRequest } from "graphql-helix";
 import type { API, HandlerFunction } from "lambda-api";
 import type { GraphQLSchema } from "graphql";
 import { container } from "tsyringe";
+import { BlockCache } from "./caches/block.cache";
 
 export function APIGatewayLambda() {
   const isTest = process.env.NODE_ENV === "test";
@@ -59,6 +60,7 @@ export const graphqlApi = /*#__PURE__*/ <TContext>(
 
 export function mkAPIGatewayHandler(api: API): APIGatewayProxyHandlerV2 {
   return async function apiGatewayHandler(event, ctx) {
+    await container.resolve(BlockCache).onInit();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return api.run(event as any, ctx);
   };

@@ -1,4 +1,5 @@
 import { container, DependencyContainer } from "tsyringe";
+import { BlockCache } from "../caches/block.cache";
 import { getBeginningOfDayInMillis } from "../helpers";
 import { IBlock } from "../types/block.interface";
 import { IBlocksByTimeResponseElement } from "../types/blocks-by-time-response.interface";
@@ -9,14 +10,15 @@ describe("BlockService", () => {
   let service: BlockService;
   let ctx: DependencyContainer;
   let mockApiClient: { [key in keyof BlockchainApiService]?: jest.Mock };
+  let cache: BlockCache;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockApiClient = {
       findBlockInfoByHash: jest.fn(),
       findBlocksInDay: jest.fn(),
     };
     ctx = container.createChildContainer();
-
+    ctx.registerSingleton(BlockCache);
     ctx.register(BlockService, BlockService);
     ctx.registerInstance(
       BlockchainApiService,
@@ -24,6 +26,8 @@ describe("BlockService", () => {
     );
 
     service = ctx.resolve(BlockService);
+    cache = ctx.resolve(BlockCache);
+    await cache.onInit();
   });
 
   afterEach(() => {
@@ -50,13 +54,23 @@ describe("BlockService", () => {
       };
     });
 
-    it("should return the response from the api", async () => {
+    it("should return the response from the api if not cached and store in cache", async () => {
       mockApiClient.findBlockInfoByHash?.mockResolvedValue(response);
 
       expect(await service.findBlockByHash(response.hash)).toEqual(response);
       expect(mockApiClient.findBlockInfoByHash).toHaveBeenCalledWith(
         response.hash,
       );
+
+      expect(await cache.getBlock(response.hash)).toBeDefined();
+    });
+
+    it("should retrieve the value from the cache if present", async () => {
+      response.hash = "asdfkjhdsalsdfkjh";
+      await cache.setBlock(response.hash, response);
+
+      expect(await service.findBlockByHash(response.hash)).toEqual(response);
+      expect(mockApiClient.findBlockInfoByHash).not.toHaveBeenCalled();
     });
   });
 

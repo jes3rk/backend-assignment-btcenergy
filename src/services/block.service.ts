@@ -1,4 +1,5 @@
 import { inject, injectable } from "tsyringe";
+import { BlockCache } from "../caches/block.cache";
 import { NUM_MILLISECONDS_IN_DAY } from "../constants";
 import { getBeginningOfDayInMillis } from "../helpers";
 import { IBlock } from "../types/block.interface";
@@ -9,10 +10,16 @@ export class BlockService {
   constructor(
     @inject(BlockchainApiService)
     private readonly blockchainApi: BlockchainApiService,
+    @inject(BlockCache) private readonly blockCache: BlockCache,
   ) {}
 
   public async findBlockByHash(hash: string): Promise<IBlock> {
-    return this.blockchainApi.findBlockInfoByHash(hash) as Promise<IBlock>;
+    const cachedResult = await this.blockCache.getBlock(hash);
+    if (cachedResult) return cachedResult;
+
+    const liveResult = await this.blockchainApi.findBlockInfoByHash(hash);
+    await this.blockCache.setBlock(hash, liveResult);
+    return liveResult;
   }
 
   public async findPreviousXDaysBlocks(
