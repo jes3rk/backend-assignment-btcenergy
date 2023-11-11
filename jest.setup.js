@@ -1,2 +1,2 @@
 /* eslint-disable */
-//require("reflect-metadata");
+require("reflect-metadata");
