@@ -1,34 +1,21 @@
 import { SchemaComposer } from "graphql-compose";
+import { findBlockByHashHandler } from "./handlers/find-block-by-hash.handler";
+import { IBlock } from "./types/block.interface";
+import { ITransaction } from "./types/transaction.interface";
 
 export const schemaComposer = new SchemaComposer();
 
-export const TransactionTC = schemaComposer.createObjectTC({
+export const TransactionTC = schemaComposer.createObjectTC<ITransaction>({
   name: "Transaction",
   fields: {
     hash: "String!",
-    size: "Int!",
-    energy_consumption: {
-      type: "Float!",
-      resolve: (source) => source.size * 4.62,
-    },
   },
 });
 
-export const BlockTC = schemaComposer.createObjectTC({
+export const BlockTC = schemaComposer.createObjectTC<IBlock>({
   name: "Block",
   fields: {
     hash: "String!",
-    size: "Int!",
-    energy_consumption: {
-      type: "Float!",
-      resolve: (source) => {
-        return source.size * 4.62;
-      },
-    },
-    tx: {
-      type: () => [TransactionTC],
-      resolve: () => [],
-    },
   },
 });
 
@@ -39,10 +26,9 @@ schemaComposer.Query.addFields({
   },
   findBlockByHash: {
     type: () => BlockTC,
-    resolve: () => ({
-      hash: "1234",
-      size: 1243,
-      tx: [],
-    }),
+    args: {
+      hash: "String!",
+    },
+    resolve: findBlockByHashHandler,
   },
 });
