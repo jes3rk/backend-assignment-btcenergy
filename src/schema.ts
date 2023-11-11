@@ -1,6 +1,7 @@
 import { SchemaComposer } from "graphql-compose";
 import { ENERGY_COST_PER_BYTE_IN_KWH } from "./constants";
 import { findBlockByHashHandler } from "./handlers/find-block-by-hash.handler";
+import { findPreviousDaysBlocksHandler } from "./handlers/find-previous-days-blocks.handler";
 import { IBlock } from "./types/block.interface";
 import { ITransaction } from "./types/transaction.interface";
 
@@ -48,6 +49,21 @@ export const BlockTC = schemaComposer.createObjectTC<IBlock>({
   },
 });
 
+export const BlockListWithEnergyTC = schemaComposer.createObjectTC<{
+  blocks: IBlock[];
+}>({
+  name: "BlocksWithEnergy",
+  fields: {
+    total_energy: {
+      type: "Float!",
+      resolve: (source) =>
+        source.blocks.reduce((acc, cur) => acc + cur.size, 0) *
+        ENERGY_COST_PER_BYTE_IN_KWH,
+    },
+    blocks: [BlockTC],
+  },
+});
+
 schemaComposer.Query.addFields({
   hello: {
     type: () => "String!",
@@ -59,5 +75,12 @@ schemaComposer.Query.addFields({
       hash: "String!",
     },
     resolve: findBlockByHashHandler,
+  },
+  findPreviousDaysBlocks: {
+    type: () => BlockListWithEnergyTC,
+    args: {
+      num_days: "Int!",
+    },
+    resolve: findPreviousDaysBlocksHandler,
   },
 });
