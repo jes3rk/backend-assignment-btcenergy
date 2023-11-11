@@ -11,6 +11,14 @@ provider:
   memorySize: 256
   logRetentionInDays: 14
   timeout: 29
+  environment:
+    REDIS_HOST: ${param:redis_host}
+    REDIS_PORT: ${param:redis_port}
+
+params:
+  dev:
+    redis_host: localhost
+    redis_port: 6379
 
 plugins:
   - serverless-esbuild

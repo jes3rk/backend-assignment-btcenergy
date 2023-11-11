@@ -7,6 +7,7 @@ import type { API, HandlerFunction } from "lambda-api";
 import type { GraphQLSchema } from "graphql";
 import { container } from "tsyringe";
 import { BlockCache } from "./caches/block.cache";
+import { RedisOptions } from "ioredis";
 
 export function APIGatewayLambda() {
   const isTest = process.env.NODE_ENV === "test";
@@ -58,9 +59,16 @@ export const graphqlApi = /*#__PURE__*/ <TContext>(
   };
 };
 
+const redisConfig: RedisOptions = {
+  host: process.env.REDIS_HOST,
+  port: +(process.env.REDIS_PORT || "0"),
+};
+
 export function mkAPIGatewayHandler(api: API): APIGatewayProxyHandlerV2 {
   return async function apiGatewayHandler(event, ctx) {
-    await container.resolve(BlockCache).onInit();
+    await container
+      .resolve(BlockCache)
+      .onInit(redisConfig.host ? redisConfig : undefined);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return api.run(event as any, ctx);
   };
