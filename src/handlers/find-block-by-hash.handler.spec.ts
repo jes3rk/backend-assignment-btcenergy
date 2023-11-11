@@ -12,7 +12,10 @@ describe("findBlockByHashHandler", () => {
       findBlockByHash: jest.fn(),
     };
     ctx = container.createChildContainer();
-    ctx.registerInstance(BlockService, mockBlockService as BlockService);
+    ctx.registerInstance(
+      BlockService,
+      mockBlockService as unknown as BlockService,
+    );
   });
 
   afterEach(() => {

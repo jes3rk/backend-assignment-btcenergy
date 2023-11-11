@@ -19,6 +19,7 @@
     "graphql-request": "^5.0.0",
     "graphql-scalars": "^1.18.0",
     "lambda-api": "^0.11.2",
+    "node-fetch": "^3.3.2",
     "reflect-metadata": "^0.1.13",
     "tsyringe": "^4.8.0"
   },
