@@ -1,4 +1,4 @@
-import { schema } from './schema'
+import { schemaComposer} from './schema'
 import { APIGatewayProxyHandlerV2 } from 'aws-lambda'
 import CreateLambdaApi from 'lambda-api'
 import { getGraphQLParameters, processRequest } from 'graphql-helix'
@@ -62,6 +62,6 @@ export function mkAPIGatewayHandler(api: API): APIGatewayProxyHandlerV2 {
 
 const api = APIGatewayLambda()
 
-api.any(graphqlApi(schema))
+api.any(graphqlApi(schemaComposer.buildSchema()))
 
 export const handler: APIGatewayProxyHandlerV2 = mkAPIGatewayHandler(api)
