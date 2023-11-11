@@ -37,6 +37,14 @@ export const BlockTC = schemaComposer.createObjectTC<IBlock>({
       resolve: (source) => source.size * ENERGY_COST_PER_BYTE_IN_KWH,
     },
     tx: [TransactionTC],
+    avg_tx_consumption: {
+      type: "Float!",
+      description:
+        "Average energy consumption of the transactions in this block in KwH",
+      resolve: (source) =>
+        (source.tx.reduce((acc, cur) => acc + cur.size, 0) / source.tx.length) *
+        ENERGY_COST_PER_BYTE_IN_KWH,
+    },
   },
 });
 

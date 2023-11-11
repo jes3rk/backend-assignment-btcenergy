@@ -1,3 +1,5 @@
+import { ITransaction } from "./transaction.interface";
+
 export interface IBlock {
   hash: string;
   version: number;
@@ -6,4 +8,5 @@ export interface IBlock {
   time: number;
   bits: number;
   size: number;
+  tx: ITransaction[];
 }
