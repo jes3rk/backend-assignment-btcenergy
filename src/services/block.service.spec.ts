@@ -45,7 +45,7 @@ describe("BlockService", () => {
       response = {
         bits: 12354843,
         hash: "asssssdkjhdfjksdlsadkfj",
-        next_block: [],
+        next_block: ["asdkjhfdsasdfkh"],
         prev_block: "ksjhfdkjsdhflaksdjh",
         size: 12345,
         time: Date.now(),
@@ -72,6 +72,8 @@ describe("BlockService", () => {
       expect(await service.findBlockByHash(response.hash)).toEqual(response);
       expect(mockApiClient.findBlockInfoByHash).not.toHaveBeenCalled();
     });
+
+    it.todo("will not cache the block if the next block doesn't exist yet");
   });
 
   describe("findPreviousXDaysBlocks", () => {

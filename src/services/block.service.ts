@@ -3,6 +3,7 @@ import { BlockCache } from "../caches/block.cache";
 import { NUM_MILLISECONDS_IN_DAY } from "../constants";
 import { getBeginningOfDayInMillis } from "../helpers";
 import { IBlock } from "../types/block.interface";
+import { IBlocksByTimeResponseElement } from "../types/blocks-by-time-response.interface";
 import { BlockchainApiService } from "./blockchain-api.service";
 
 @injectable()
@@ -38,12 +39,29 @@ export class BlockService {
   }
 
   public async findOneDayOfBlocks(millis: number): Promise<IBlock[]> {
-    const rawData = await this.blockchainApi.findBlocksInDay(millis);
+    const rawData = new Array<IBlocksByTimeResponseElement>();
+    const cacheData = await this.blockCache.getBlockHashesByMillis(millis);
+    if (cacheData) {
+      rawData.push(...cacheData);
+    } else {
+      const apiData = await this.blockchainApi.findBlocksInDay(millis);
+      await this.blockCache.setBlockHashesByMillis(millis, apiData);
+      rawData.push(...apiData);
+    }
 
     const allBlockHashes = new Set(rawData.map((d) => d.hash));
+    const manyBlocks = await this.blockCache.getManyBlocks([...allBlockHashes]);
+
+    const cacheMap = new Map(
+      manyBlocks.filter((c) => !!c).map((c) => [c!.hash, c]),
+    );
 
     return Promise.all(
-      [...allBlockHashes].map((hash) => this.findBlockByHash(hash)),
+      [...allBlockHashes].map((hash) =>
+        cacheMap.has(hash)
+          ? (cacheMap.get(hash) as IBlock)
+          : this.findBlockByHash(hash),
+      ),
     );
   }
 }
